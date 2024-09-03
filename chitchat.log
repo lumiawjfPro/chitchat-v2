@@ -1,0 +1,7 @@
+ERROR 2024/09/02 15:59:05 utils.go:102: pq: password authentication failed for user "lumia" Cannot create user
+ERROR 2024/09/02 15:59:14 utils.go:102: pq: password authentication failed for user "lumia" Cannot find user
+ERROR 2024/09/02 16:04:04 utils.go:102: pq: password authentication failed for user "lumia" Cannot create user
+ERROR 2024/09/02 16:07:44 utils.go:102: pq: password authentication failed for user "lumia" Cannot create user
+ERROR 2024/09/02 16:09:27 utils.go:102: pq: password authentication failed for user "lumia" Cannot create user
+ERROR 2024/09/02 16:13:16 utils.go:102: pq: password authentication failed for user "postgre" Cannot create user
+ERROR 2024/09/02 16:15:47 utils.go:102: pq: password authentication failed for user "postgre" Cannot create user

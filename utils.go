@@ -1,16 +1,17 @@
 package main
 
 import (
-	"chitchatv2/data"
+	"chitchatv3/data"
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/gin-gonic/gin"
 	"html/template"
 	"log"
 	"net/http"
 	"os"
 	"strings"
+
+	"github.com/gin-gonic/gin"
 )
 
 type Configuration struct {

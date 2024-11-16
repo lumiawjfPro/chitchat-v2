@@ -5,3 +5,7 @@ ERROR 2024/09/02 16:07:44 utils.go:102: pq: password authentication failed for u
 ERROR 2024/09/02 16:09:27 utils.go:102: pq: password authentication failed for user "lumia" Cannot create user
 ERROR 2024/09/02 16:13:16 utils.go:102: pq: password authentication failed for user "postgre" Cannot create user
 ERROR 2024/09/02 16:15:47 utils.go:102: pq: password authentication failed for user "postgre" Cannot create user
+WARNING 2024/09/05 11:39:41 utils.go:107: <nil> Failed to get cookie
+WARNING 2024/09/05 11:45:03 utils.go:107: <nil> Failed to get cookie
+WARNING 2024/09/05 15:56:02 utils.go:107: <nil> Failed to get cookie
+ERROR 2024/09/13 23:48:45 utils.go:102: record not found Cannot find user

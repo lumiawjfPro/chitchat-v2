@@ -3,25 +3,27 @@ package data
 import (
 	"crypto/rand"
 	"crypto/sha1"
-	"database/sql"
 	"fmt"
-	_ "github.com/lib/pq"
 	"log"
 )
 
-var Db *sql.DB
+//var DB *gorm.DB
+//
+//func init() {
+//	dsn := "host=/var/run/postgresql user=postgres password=892289 dbname=chitchat sslmode=disable"
+//	// dsn := "user=postgres password=892289 dbname=chitchat  sslmode=disable"
+//	DB, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
+//	if err != nil {
+//		log.Fatal("Failed to connect to database:", err)
+//	}
+//
+//	err = DB.AutoMigrate(&User{}, &Session{}, &Thread{}, &Post{})
+//	if err != nil {
+//		log.Fatal(err)
+//	}
+//}
 
-func init() {
-	var err error
-	Db, err = sql.Open("postgres", "user=postgres dbname=chitchat password=892289Wjf sslmode=disable")
-	if err != nil {
-		log.Fatal(err)
-	}
-	return
-}
-
-// create a random UUID with from RFC 4122
-// adapted from http://github.com/nu7hatch/gouuid
+// create a random UUID with from RFC 4122 adapted from http://github.com/nu7hatch/gouuid
 func createUUID() (uuid string) {
 	u := new([16]byte)
 	_, err := rand.Read(u[:])
@@ -31,8 +33,7 @@ func createUUID() (uuid string) {
 
 	// 0x40 is reserved variant from RFC 4122
 	u[8] = (u[8] | 0x40) & 0x7F
-	// Set the four most significant bits (bits 12 through 15) of the
-	// time_hi_and_version field to the 4-bit version number.
+	// Set the four most significant bits (bits 12 through 15) of the time_hi_and_version field to the 4-bit version number.
 	u[6] = (u[6] & 0xF) | (0x4 << 4)
 	uuid = fmt.Sprintf("%x-%x-%x-%x-%x", u[0:4], u[4:6], u[6:8], u[8:10], u[10:])
 	return

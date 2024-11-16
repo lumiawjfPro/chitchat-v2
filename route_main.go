@@ -1,8 +1,9 @@
 package main
 
 import (
+	"chitchatv3/data"
+
 	"github.com/gin-gonic/gin"
-	"chitchatv2/data"
 )
 
 // GET /err?msg=

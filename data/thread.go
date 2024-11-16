@@ -2,23 +2,31 @@ package data
 
 import (
 	"time"
+
+	"gorm.io/gorm"
 )
 
 type Thread struct {
-	Id        int
-	Uuid      string
-	Topic     string
-	UserId    int
-	CreatedAt time.Time
+	Id        int       `gorm:"primaryKey;autoIncrement"`
+	Uuid      string    `gorm:"type:varchar(64);not null;unique"`
+	Topic     string    `gorm:"type:text"`
+	UserId    int       `gorm:"not null"`
+	CreatedAt time.Time `gorm:"not null"`
 }
 
 type Post struct {
-	Id        int
-	Uuid      string
-	Body      string
-	UserId    int
-	ThreadId  int
-	CreatedAt time.Time
+	Id        int       `gorm:"primaryKey;autoIncrement"`
+	Uuid      string    `gorm:"type:varchar(64);not null;unique"`
+	Body      string    `gorm:"type:text"`
+	UserId    int       `gorm:"not null"`
+	ThreadId  int       `gorm:"not null"`
+	CreatedAt time.Time `gorm:"not null"`
+}
+
+var Db *gorm.DB
+
+func SetDB(DB *gorm.DB) {
+	Db = DB
 }
 
 // format the CreatedAt date to display nicely on the screen
@@ -31,100 +39,62 @@ func (post *Post) CreatedAtDate() string {
 }
 
 // get the number of posts in a thread
-func (thread *Thread) NumReplies() (count int) {
-	rows, err := Db.Query("SELECT count(*) FROM posts where thread_id = $1", thread.Id)
-	if err != nil {
-		return
-	}
-	for rows.Next() {
-		if err = rows.Scan(&count); err != nil {
-			return
-		}
-	}
-	rows.Close()
+func (thread *Thread) NumReplies() (count int64, err error) {
+	err = Db.Model(&Post{}).Where("thread_id = ?", thread.Id).Count(&count).Error
 	return
 }
 
 // get posts to a thread
 func (thread *Thread) Posts() (posts []Post, err error) {
-	rows, err := Db.Query("SELECT id, uuid, body, user_id, thread_id, created_at FROM posts where thread_id = $1", thread.Id)
-	if err != nil {
-		return
-	}
-	for rows.Next() {
-		post := Post{}
-		if err = rows.Scan(&post.Id, &post.Uuid, &post.Body, &post.UserId, &post.ThreadId, &post.CreatedAt); err != nil {
-			return
-		}
-		posts = append(posts, post)
-	}
-	rows.Close()
+	err = Db.Where("thread_id = ?", thread.Id).Find(&posts).Error
 	return
 }
 
 // Create a new thread
 func (user *User) CreateThread(topic string) (conv Thread, err error) {
-	statement := "insert into threads (uuid, topic, user_id, created_at) values ($1, $2, $3, $4) returning id, uuid, topic, user_id, created_at"
-	stmt, err := Db.Prepare(statement)
-	if err != nil {
-		return
+	conv = Thread{
+		Uuid:      createUUID(),
+		Topic:     topic,
+		UserId:    user.Id,
+		CreatedAt: time.Now(),
 	}
-	defer stmt.Close()
-	// use QueryRow to return a row and scan the returned id into the Session struct
-	err = stmt.QueryRow(createUUID(), topic, user.Id, time.Now()).Scan(&conv.Id, &conv.Uuid, &conv.Topic, &conv.UserId, &conv.CreatedAt)
+	err = Db.Create(&conv).Error
 	return
 }
 
 // Create a new post to a thread
 func (user *User) CreatePost(conv Thread, body string) (post Post, err error) {
-	statement := "insert into posts (uuid, body, user_id, thread_id, created_at) values ($1, $2, $3, $4, $5) returning id, uuid, body, user_id, thread_id, created_at"
-	stmt, err := Db.Prepare(statement)
-	if err != nil {
-		return
+	post = Post{
+		Uuid:      createUUID(),
+		Body:      body,
+		UserId:    user.Id,
+		ThreadId:  conv.Id,
+		CreatedAt: time.Now(),
 	}
-	defer stmt.Close()
-	// use QueryRow to return a row and scan the returned id into the Session struct
-	err = stmt.QueryRow(createUUID(), body, user.Id, conv.Id, time.Now()).Scan(&post.Id, &post.Uuid, &post.Body, &post.UserId, &post.ThreadId, &post.CreatedAt)
+	err = Db.Create(&post).Error
 	return
 }
 
 // Get all threads in the database and returns it
 func Threads() (threads []Thread, err error) {
-	rows, err := Db.Query("SELECT id, uuid, topic, user_id, created_at FROM threads ORDER BY created_at DESC")
-	if err != nil {
-		return
-	}
-	for rows.Next() {
-		conv := Thread{}
-		if err = rows.Scan(&conv.Id, &conv.Uuid, &conv.Topic, &conv.UserId, &conv.CreatedAt); err != nil {
-			return
-		}
-		threads = append(threads, conv)
-	}
-	rows.Close()
+	err = Db.Order("created_at desc").Find(&threads).Error
 	return
 }
 
 // Get a thread by the UUID
 func ThreadByUUID(uuid string) (conv Thread, err error) {
-	conv = Thread{}
-	err = Db.QueryRow("SELECT id, uuid, topic, user_id, created_at FROM threads WHERE uuid = $1", uuid).
-		Scan(&conv.Id, &conv.Uuid, &conv.Topic, &conv.UserId, &conv.CreatedAt)
+	err = Db.Where("uuid = ?", uuid).First(&conv).Error
 	return
 }
 
 // Get the user who started this thread
 func (thread *Thread) User() (user User) {
-	user = User{}
-	Db.QueryRow("SELECT id, uuid, name, email, created_at FROM users WHERE id = $1", thread.UserId).
-		Scan(&user.Id, &user.Uuid, &user.Name, &user.Email, &user.CreatedAt)
+	_ = Db.Where("id = ?", thread.UserId).First(&user).Error
 	return
 }
 
 // Get the user who wrote the post
 func (post *Post) User() (user User) {
-	user = User{}
-	Db.QueryRow("SELECT id, uuid, name, email, created_at FROM users WHERE id = $1", post.UserId).
-		Scan(&user.Id, &user.Uuid, &user.Name, &user.Email, &user.CreatedAt)
+	_ = Db.Where("id = ?", post.UserId).First(&user).Error
 	return
 }
